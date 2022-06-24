@@ -176,7 +176,7 @@ const Home: NextPage = () => {
     <>
       <ThemeProvider theme={customTheme}>
         <Head>
-          <title>Confirm your payment</title>
+          <title>Заказ кофе</title>
         </Head>
 
         <main>
@@ -195,7 +195,7 @@ const Home: NextPage = () => {
                   fontStyle="italic"
                   textAlign="center"
                 >
-                  Payment
+                  Заказ
                 </Typography>
 
                 <Grid
