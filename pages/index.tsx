@@ -86,7 +86,7 @@ const Home: NextPage = () => {
             background: `linear-gradient(to right, ${theme.palette.primary.main} 60%, ${theme.palette.primary.light})`,
             backgroundPositionX: "0%",
             backgroundSize: "300%",
-            transition: "background 1s",
+            transition: "background 1.5s",
             ":hover": {
               backgroundPositionX: "99%",
               backgroundSize: "1500%",
