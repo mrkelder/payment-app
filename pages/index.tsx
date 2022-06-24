@@ -14,7 +14,7 @@ import {
 import {
   ChangeEventHandler,
   FormEventHandler,
-  useCallback,
+  useEffect,
   useState,
 } from "react";
 
@@ -51,12 +51,23 @@ const defaultFormError: FormError = {
 const Home: NextPage = () => {
   const [formData, setFormData] = useState<CustomFromData>(defaultFormData);
   const [formError, setFormError] = useState<FormError>(defaultFormError);
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
+
+  const { cardNumber, expirationDate, cvv, amount } = formData;
+
+  const isCardNumberValid = /^\d{16}$/g.test(cardNumber);
+  const isExpirationDateValid = /^\d{2}\/\d{4}$/g.test(expirationDate);
+  const isCvvValid = /^\d{0,3}$/g.test(cvv);
+  const isAmountValid = /^\d+$/g.test(amount);
+
+  const formIsValid =
+    isCardNumberValid && isExpirationDateValid && isCvvValid && isAmountValid;
 
   const customTheme = createTheme({
     components: {
       MuiButton: {
         styleOverrides: {
-          root: {
+          root: ({ theme }) => ({
             textTransform: "none",
             backgroundRepeat: "no-repeat",
             background:
@@ -69,7 +80,10 @@ const Home: NextPage = () => {
               backgroundSize: "1500%",
               transition: "1s",
             },
-          },
+            ":disabled": {
+              background: theme.palette.grey[300],
+            },
+          }),
         },
       },
       MuiFormControl: {
@@ -90,7 +104,7 @@ const Home: NextPage = () => {
     },
   });
 
-  function changeInputValue(name: keyof CustomFromData): InputHandler {
+  function changeInputValue(name: keyof CustomFromData) {
     return (({ target: { value } }) => {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }) as InputHandler;
@@ -100,34 +114,32 @@ const Home: NextPage = () => {
     setFormError((prev) => ({ ...prev, [name]: value }));
   }
 
-  function resetFormError(): void {
-    setFormError(defaultFormError);
-  }
+  useEffect(() => {
+    setIsSubmitDisabled(!formIsValid);
+  }, [formIsValid]);
 
-  const submitHandler: FormEventHandler = (event): void => {
+  const formChangeHandler = () => {
+    const isFormErrorDefault =
+      JSON.stringify(defaultFormError) === JSON.stringify(formData);
+
+    if (!isFormErrorDefault) setFormError(defaultFormError);
+  };
+
+  const submitHandler: FormEventHandler = async (event) => {
     event.preventDefault();
-
-    const { cardNumber, expirationDate, cvv, amount } = formData;
-
-    const isCardNumberValid = /^\d{16}$/g.test(cardNumber);
-    const isExpirationDateValid = /^\d{2}\/\d{4}$/g.test(expirationDate);
-    const isCvvValid = /^\d{0,3}$/g.test(cvv);
-    const isAmountValid = /^\d+$/g.test(amount);
-
-    console.log(isCardNumberValid);
 
     if (!isCardNumberValid) changeFormError("cardNumber", true);
     if (!isExpirationDateValid) changeFormError("expirationDate", true);
     if (!isCvvValid) changeFormError("cvv", true);
     if (!isAmountValid) changeFormError("amount", true);
 
-    if (
-      isCardNumberValid &&
-      isExpirationDateValid &&
-      isCvvValid &&
-      isAmountValid
-    ) {
-      // fetch
+    if (formIsValid) {
+      const response = await fetch(
+        process.env.NEXT_PUBLIC_HOST + "/api/sendPayment",
+        { method: "POST", body: JSON.stringify(formData) }
+      );
+
+      console.log(response);
     }
   };
 
@@ -144,7 +156,7 @@ const Home: NextPage = () => {
           alignItems="center"
           height="100vh"
         >
-          <form onSubmit={submitHandler} onChange={resetFormError}>
+          <form onSubmit={submitHandler} onChange={formChangeHandler}>
             <Stack bgcolor="white" spacing={2} p={2.5} mx={2} maxWidth={350}>
               <Typography
                 variant="h1"
@@ -212,7 +224,13 @@ const Home: NextPage = () => {
                 fullWidth
               />
 
-              <Button variant="contained" fullWidth size="large" type="submit">
+              <Button
+                variant="contained"
+                disabled={isSubmitDisabled}
+                fullWidth
+                size="large"
+                type="submit"
+              >
                 Оплатить
               </Button>
             </Stack>
