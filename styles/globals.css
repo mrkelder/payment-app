@@ -1,9 +1,20 @@
+:root {
+  --blue: #210070;
+  --cyan: #a2c4fc;
+}
+
 html,
 body {
   padding: 0;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+}
+
+main {
+  height: 100vh;
+  background: linear-gradient(to top right, var(--blue), var(--cyan));
+  background-repeat: no-repeat;
 }
 
 a {
