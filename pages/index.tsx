@@ -60,25 +60,36 @@ const Home: NextPage = () => {
   const isCvvValid = /^\d{0,3}$/g.test(cvv);
   const isAmountValid = /^\d+$/g.test(amount);
 
+  const coffeePalette = {
+    100: "#ece0d1",
+    500: "#634832",
+  };
+
   const formIsValid =
     isCardNumberValid && isExpirationDateValid && isCvvValid && isAmountValid;
 
   const customTheme = createTheme({
+    palette: {
+      primary: {
+        light: coffeePalette[100],
+        main: coffeePalette[500],
+      },
+    },
     components: {
       MuiButton: {
         styleOverrides: {
           root: ({ theme }) => ({
+            color: "#fff",
             textTransform: "none",
             backgroundRepeat: "no-repeat",
-            background:
-              "linear-gradient(to right, var(--cyan) 60%, var(--blue))",
+            background: `linear-gradient(to right, ${theme.palette.primary.main} 60%, ${theme.palette.primary.light})`,
             backgroundPositionX: "0%",
             backgroundSize: "300%",
-            transition: "1s",
+            transition: "background 1s",
             ":hover": {
-              backgroundPositionX: "100%",
+              backgroundPositionX: "99%",
               backgroundSize: "1500%",
-              transition: "1s",
+              transition: "background .7s",
             },
             ":disabled": {
               background: theme.palette.grey[300],
@@ -144,100 +155,114 @@ const Home: NextPage = () => {
   };
 
   return (
-    <ThemeProvider theme={customTheme}>
-      <Head>
-        <title>Confirm your payment</title>
-      </Head>
+    <>
+      <ThemeProvider theme={customTheme}>
+        <Head>
+          <title>Confirm your payment</title>
+        </Head>
 
-      <main>
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          height="100vh"
-        >
-          <form onSubmit={submitHandler} onChange={formChangeHandler}>
-            <Stack bgcolor="white" spacing={2} p={2.5} mx={2} maxWidth={350}>
-              <Typography
-                variant="h1"
-                fontSize={24}
-                fontWeight="bold"
-                fontStyle="italic"
-                textAlign="center"
-              >
-                Payment
-              </Typography>
+        <main>
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            height="100vh"
+          >
+            <form onSubmit={submitHandler} onChange={formChangeHandler}>
+              <Stack bgcolor="white" spacing={2} p={2.5} mx={2} maxWidth={350}>
+                <Typography
+                  variant="h1"
+                  fontSize={24}
+                  fontWeight="bold"
+                  fontStyle="italic"
+                  textAlign="center"
+                >
+                  Payment
+                </Typography>
 
-              <Grid
-                container
-                rowSpacing={1.5}
-                justifyContent="space-between"
-                my={2}
-              >
-                <Grid item xs={12}>
-                  <TextField
-                    size="small"
-                    inputProps={{ maxLength: 16 }}
-                    placeholder="Card Number"
-                    onChange={changeInputValue("cardNumber")}
-                    value={formData.cardNumber}
-                    error={formError.cardNumber}
-                    fullWidth
-                  />
+                <Grid
+                  container
+                  rowSpacing={1.5}
+                  justifyContent="space-between"
+                  my={2}
+                >
+                  <Grid item xs={12}>
+                    <TextField
+                      size="small"
+                      inputProps={{ maxLength: 16 }}
+                      placeholder="Card Number"
+                      onChange={changeInputValue("cardNumber")}
+                      value={formData.cardNumber}
+                      error={formError.cardNumber}
+                      fullWidth
+                    />
+                  </Grid>
+
+                  <Grid item xs={7}>
+                    <TextField
+                      size="small"
+                      inputProps={{ maxLength: 7 }}
+                      placeholder="MM/YYYY"
+                      onChange={changeInputValue("expirationDate")}
+                      value={formData.expirationDate}
+                      error={formError.expirationDate}
+                      fullWidth
+                    />
+                  </Grid>
+
+                  <Grid item xs={4}>
+                    <TextField
+                      size="small"
+                      inputProps={{ maxLength: 3 }}
+                      placeholder="CVV"
+                      onChange={changeInputValue("cvv")}
+                      value={formData.cvv}
+                      error={formError.cvv}
+                      fullWidth
+                    />
+                  </Grid>
                 </Grid>
 
-                <Grid item xs={7}>
-                  <TextField
-                    size="small"
-                    inputProps={{ maxLength: 7 }}
-                    placeholder="MM/YYYY"
-                    onChange={changeInputValue("expirationDate")}
-                    value={formData.expirationDate}
-                    error={formError.expirationDate}
-                    fullWidth
-                  />
-                </Grid>
+                <TextField
+                  size="small"
+                  type="number"
+                  placeholder="Amount"
+                  InputProps={{
+                    startAdornment: <Typography mr={1}>☕</Typography>,
+                  }}
+                  onChange={changeInputValue("amount")}
+                  value={formData.amount}
+                  error={formError.amount}
+                  fullWidth
+                />
 
-                <Grid item xs={4}>
-                  <TextField
-                    size="small"
-                    inputProps={{ maxLength: 3 }}
-                    placeholder="CVV"
-                    onChange={changeInputValue("cvv")}
-                    value={formData.cvv}
-                    error={formError.cvv}
-                    fullWidth
-                  />
-                </Grid>
-              </Grid>
+                <Button
+                  variant="contained"
+                  disabled={isSubmitDisabled}
+                  fullWidth
+                  size="large"
+                  type="submit"
+                >
+                  Оплатить
+                </Button>
+              </Stack>
+            </form>
+          </Box>
+        </main>
+      </ThemeProvider>
 
-              <TextField
-                size="small"
-                type="number"
-                placeholder="Amount"
-                InputProps={{
-                  startAdornment: <Typography mr={1}>$</Typography>,
-                }}
-                onChange={changeInputValue("amount")}
-                value={formData.amount}
-                error={formError.amount}
-                fullWidth
-              />
-
-              <Button
-                variant="contained"
-                disabled={isSubmitDisabled}
-                fullWidth
-                size="large"
-                type="submit"
-              >
-                Оплатить
-              </Button>
-            </Stack>
-          </form>
-        </Box>
-      </main>
-    </ThemeProvider>
+      <style jsx>{`
+        main {
+          height: 100vh;
+          background: linear-gradient(
+            to top right,
+            ${coffeePalette[100]},
+            ${coffeePalette[500]}
+          );
+          background-repeat: no-repeat;
+        }
+      `}</style>
+    </>
   );
 };
 
