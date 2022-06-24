@@ -11,13 +11,25 @@ import {
   createTheme,
   ThemeProvider,
 } from "@mui/material";
-import { ChangeEventHandler, useCallback, useState } from "react";
+import {
+  ChangeEventHandler,
+  FormEventHandler,
+  useCallback,
+  useState,
+} from "react";
 
 interface CustomFromData {
   cardNumber: string;
   expirationDate: string;
   cvv: string;
   amount: string;
+}
+
+interface FormError {
+  cardNumber: boolean;
+  expirationDate: boolean;
+  cvv: boolean;
+  amount: boolean;
 }
 
 type InputHandler = ChangeEventHandler<HTMLInputElement>;
@@ -29,8 +41,16 @@ const defaultFormData: CustomFromData = {
   amount: "",
 };
 
+const defaultFormError: FormError = {
+  cardNumber: false,
+  expirationDate: false,
+  cvv: false,
+  amount: false,
+};
+
 const Home: NextPage = () => {
   const [formData, setFormData] = useState<CustomFromData>(defaultFormData);
+  const [formError, setFormError] = useState<FormError>(defaultFormError);
 
   const customTheme = createTheme({
     components: {
@@ -70,35 +90,46 @@ const Home: NextPage = () => {
     },
   });
 
-  function changeFormData(name: keyof CustomFromData, value: string): void {
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  function changeInputValue(name: keyof CustomFromData): InputHandler {
+    return (({ target: { value } }) => {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }) as InputHandler;
   }
 
-  const cardNumberHandler = useCallback<InputHandler>(
-    ({ target: { value } }) => {
-      const shouldLetSetValue = /^\d{0,16}$/g.test(value);
-      if (shouldLetSetValue) changeFormData("cardNumber", value);
-    },
-    []
-  );
+  function changeFormError(name: keyof FormError, value: boolean): void {
+    setFormError((prev) => ({ ...prev, [name]: value }));
+  }
 
-  const expirationDateHandler = useCallback<InputHandler>(
-    ({ target: { value } }) => {
-      const shouldLetSetValue = /^\d{0,6}$/g.test(value);
-      if (shouldLetSetValue) changeFormData("expirationDate", value);
-    },
-    []
-  );
+  function resetFormError(): void {
+    setFormError(defaultFormError);
+  }
 
-  const cvvHandler = useCallback<InputHandler>(({ target: { value } }) => {
-    const shouldLetSetValue = /^\d{0,3}$/g.test(value);
-    if (shouldLetSetValue) changeFormData("cvv", value);
-  }, []);
+  const submitHandler: FormEventHandler = (event): void => {
+    event.preventDefault();
 
-  const amountHandler = useCallback<InputHandler>(({ target: { value } }) => {
-    const shouldLetSetValue = /^\d*$/g.test(value);
-    if (shouldLetSetValue) changeFormData("amount", value);
-  }, []);
+    const { cardNumber, expirationDate, cvv, amount } = formData;
+
+    const isCardNumberValid = /^\d{16}$/g.test(cardNumber);
+    const isExpirationDateValid = /^\d{2}\/\d{4}$/g.test(expirationDate);
+    const isCvvValid = /^\d{0,3}$/g.test(cvv);
+    const isAmountValid = /^\d+$/g.test(amount);
+
+    console.log(isCardNumberValid);
+
+    if (!isCardNumberValid) changeFormError("cardNumber", true);
+    if (!isExpirationDateValid) changeFormError("expirationDate", true);
+    if (!isCvvValid) changeFormError("cvv", true);
+    if (!isAmountValid) changeFormError("amount", true);
+
+    if (
+      isCardNumberValid &&
+      isExpirationDateValid &&
+      isCvvValid &&
+      isAmountValid
+    ) {
+      // fetch
+    }
+  };
 
   return (
     <ThemeProvider theme={customTheme}>
@@ -113,71 +144,79 @@ const Home: NextPage = () => {
           alignItems="center"
           height="100vh"
         >
-          <Stack bgcolor="white" spacing={2} p={2.5} mx={2} maxWidth={350}>
-            <Typography
-              variant="h1"
-              fontSize={24}
-              fontWeight="bold"
-              fontStyle="italic"
-              textAlign="center"
-            >
-              Payment
-            </Typography>
+          <form onSubmit={submitHandler} onChange={resetFormError}>
+            <Stack bgcolor="white" spacing={2} p={2.5} mx={2} maxWidth={350}>
+              <Typography
+                variant="h1"
+                fontSize={24}
+                fontWeight="bold"
+                fontStyle="italic"
+                textAlign="center"
+              >
+                Payment
+              </Typography>
 
-            <Grid
-              container
-              rowSpacing={1.5}
-              justifyContent="space-between"
-              my={2}
-            >
-              <Grid item xs={12}>
-                <TextField
-                  size="small"
-                  inputProps={{ maxLength: 16 }}
-                  placeholder="Card Number"
-                  onChange={cardNumberHandler}
-                  value={formData.cardNumber}
-                  fullWidth
-                />
+              <Grid
+                container
+                rowSpacing={1.5}
+                justifyContent="space-between"
+                my={2}
+              >
+                <Grid item xs={12}>
+                  <TextField
+                    size="small"
+                    inputProps={{ maxLength: 16 }}
+                    placeholder="Card Number"
+                    onChange={changeInputValue("cardNumber")}
+                    value={formData.cardNumber}
+                    error={formError.cardNumber}
+                    fullWidth
+                  />
+                </Grid>
+
+                <Grid item xs={7}>
+                  <TextField
+                    size="small"
+                    inputProps={{ maxLength: 7 }}
+                    placeholder="MM/YYYY"
+                    onChange={changeInputValue("expirationDate")}
+                    value={formData.expirationDate}
+                    error={formError.expirationDate}
+                    fullWidth
+                  />
+                </Grid>
+
+                <Grid item xs={4}>
+                  <TextField
+                    size="small"
+                    inputProps={{ maxLength: 3 }}
+                    placeholder="CVV"
+                    onChange={changeInputValue("cvv")}
+                    value={formData.cvv}
+                    error={formError.cvv}
+                    fullWidth
+                  />
+                </Grid>
               </Grid>
 
-              <Grid item xs={7}>
-                <TextField
-                  size="small"
-                  inputProps={{ maxLength: 7 }}
-                  placeholder="MM/YYYY"
-                  onChange={expirationDateHandler}
-                  value={formData.expirationDate}
-                  fullWidth
-                />
-              </Grid>
+              <TextField
+                size="small"
+                type="number"
+                placeholder="Amount"
+                InputProps={{
+                  startAdornment: <Typography mr={1}>$</Typography>,
+                }}
+                onChange={changeInputValue("amount")}
+                value={formData.amount}
+                error={formError.amount}
+                fullWidth
+              />
 
-              <Grid item xs={4}>
-                <TextField
-                  size="small"
-                  inputProps={{ maxLength: 3 }}
-                  placeholder="CVV"
-                  onChange={cvvHandler}
-                  value={formData.cvv}
-                  fullWidth
-                />
-              </Grid>
-            </Grid>
-
-            <TextField
-              size="small"
-              type="number"
-              placeholder="Amount"
-              InputProps={{ startAdornment: <Typography mr={1}>$</Typography> }}
-              onChange={amountHandler}
-              value={formData.amount}
-              fullWidth
-            />
-
-            <Button variant="contained" fullWidth size="large">
-              Оплатить
-            </Button>
-          </Stack>
+              <Button variant="contained" fullWidth size="large" type="submit">
+                Оплатить
+              </Button>
+            </Stack>
+          </form>
         </Box>
       </main>
     </ThemeProvider>
