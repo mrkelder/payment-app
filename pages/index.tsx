@@ -19,13 +19,6 @@ import {
   useState,
 } from "react";
 
-interface CustomFromData {
-  cardNumber: string;
-  expirationDate: string;
-  cvv: string;
-  amount: string;
-}
-
 interface FormError {
   cardNumber: boolean;
   expirationDate: boolean;
@@ -35,7 +28,7 @@ interface FormError {
 
 type InputHandler = ChangeEventHandler<HTMLInputElement>;
 
-const defaultFormData: CustomFromData = {
+const defaultFormData: PaymentFromData = {
   cardNumber: "",
   expirationDate: "",
   cvv: "",
@@ -50,7 +43,7 @@ const defaultFormError: FormError = {
 };
 
 const Home: NextPage = () => {
-  const [formData, setFormData] = useState<CustomFromData>(defaultFormData);
+  const [formData, setFormData] = useState<PaymentFromData>(defaultFormData);
   const [formError, setFormError] = useState<FormError>(defaultFormError);
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
 
@@ -116,7 +109,7 @@ const Home: NextPage = () => {
     },
   });
 
-  function changeInputValue(name: keyof CustomFromData) {
+  function changeInputValue(name: keyof PaymentFromData) {
     return (({ target: { value } }) => {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }) as InputHandler;
