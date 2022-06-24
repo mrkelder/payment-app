@@ -8,8 +8,6 @@ import {
   Grid,
   Typography,
   Stack,
-  createTheme,
-  ThemeProvider,
   Dialog,
   DialogTitle,
   DialogContent,
