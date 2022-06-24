@@ -11,8 +11,27 @@ import {
   createTheme,
   ThemeProvider,
 } from "@mui/material";
+import { ChangeEventHandler, useCallback, useState } from "react";
+
+interface CustomFromData {
+  cardNumber: string;
+  expirationDate: string;
+  cvv: string;
+  amount: string;
+}
+
+type InputHandler = ChangeEventHandler<HTMLInputElement>;
+
+const defaultFormData: CustomFromData = {
+  cardNumber: "",
+  expirationDate: "",
+  cvv: "",
+  amount: "",
+};
 
 const Home: NextPage = () => {
+  const [formData, setFormData] = useState<CustomFromData>(defaultFormData);
+
   const customTheme = createTheme({
     components: {
       MuiButton: {
@@ -51,6 +70,36 @@ const Home: NextPage = () => {
     },
   });
 
+  function changeFormData(name: keyof CustomFromData, value: string): void {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }
+
+  const cardNumberHandler = useCallback<InputHandler>(
+    ({ target: { value } }) => {
+      const shouldLetSetValue = /^\d{0,16}$/g.test(value);
+      if (shouldLetSetValue) changeFormData("cardNumber", value);
+    },
+    []
+  );
+
+  const expirationDateHandler = useCallback<InputHandler>(
+    ({ target: { value } }) => {
+      const shouldLetSetValue = /^\d{0,6}$/g.test(value);
+      if (shouldLetSetValue) changeFormData("expirationDate", value);
+    },
+    []
+  );
+
+  const cvvHandler = useCallback<InputHandler>(({ target: { value } }) => {
+    const shouldLetSetValue = /^\d{0,3}$/g.test(value);
+    if (shouldLetSetValue) changeFormData("cvv", value);
+  }, []);
+
+  const amountHandler = useCallback<InputHandler>(({ target: { value } }) => {
+    const shouldLetSetValue = /^\d*$/g.test(value);
+    if (shouldLetSetValue) changeFormData("amount", value);
+  }, []);
+
   return (
     <ThemeProvider theme={customTheme}>
       <Head>
@@ -86,6 +135,8 @@ const Home: NextPage = () => {
                   size="small"
                   inputProps={{ maxLength: 16 }}
                   placeholder="Card Number"
+                  onChange={cardNumberHandler}
+                  value={formData.cardNumber}
                   fullWidth
                 />
               </Grid>
@@ -95,6 +146,8 @@ const Home: NextPage = () => {
                   size="small"
                   inputProps={{ maxLength: 7 }}
                   placeholder="MM/YYYY"
+                  onChange={expirationDateHandler}
+                  value={formData.expirationDate}
                   fullWidth
                 />
               </Grid>
@@ -104,6 +157,8 @@ const Home: NextPage = () => {
                   size="small"
                   inputProps={{ maxLength: 3 }}
                   placeholder="CVV"
+                  onChange={cvvHandler}
+                  value={formData.cvv}
                   fullWidth
                 />
               </Grid>
@@ -114,6 +169,8 @@ const Home: NextPage = () => {
               type="number"
               placeholder="Amount"
               InputProps={{ startAdornment: <Typography mr={1}>$</Typography> }}
+              onChange={amountHandler}
+              value={formData.amount}
               fullWidth
             />
 
