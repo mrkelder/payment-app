@@ -10,6 +10,11 @@ import {
   Stack,
   createTheme,
   ThemeProvider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 
 import {
@@ -17,6 +22,7 @@ import {
   FormEventHandler,
   useEffect,
   useState,
+  useCallback,
 } from "react";
 
 interface FormError {
@@ -24,6 +30,10 @@ interface FormError {
   expirationDate: boolean;
   cvv: boolean;
   amount: boolean;
+}
+
+interface ResponseState extends ResponseData {
+  shouldShowDialog: boolean;
 }
 
 type InputHandler = ChangeEventHandler<HTMLInputElement>;
@@ -42,9 +52,16 @@ const defaultFormError: FormError = {
   amount: false,
 };
 
+const defaultResponseState: ResponseState = {
+  shouldShowDialog: false,
+  requestId: "",
+  amount: 0,
+};
+
 const Home: NextPage = () => {
   const [formData, setFormData] = useState<PaymentFromData>(defaultFormData);
   const [formError, setFormError] = useState<FormError>(defaultFormError);
+  const [response, setResponse] = useState<ResponseState>(defaultResponseState);
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
 
   const { cardNumber, expirationDate, cvv, amount } = formData;
@@ -144,9 +161,16 @@ const Home: NextPage = () => {
         { method: "POST", body: JSON.stringify(formData) }
       );
 
-      console.log(response);
+      if (response.ok) {
+        const data = (await response.json()) as ResponseData;
+        setResponse({ ...data, shouldShowDialog: true });
+      }
     }
   };
+
+  const closeDialog = useCallback(() => {
+    setResponse((prev) => ({ ...prev, shouldShowDialog: false }));
+  }, []);
 
   return (
     <>
@@ -244,6 +268,21 @@ const Home: NextPage = () => {
           </Box>
         </main>
       </ThemeProvider>
+
+      <Dialog open={response.shouldShowDialog} onClose={closeDialog}>
+        <DialogTitle id="alert-dialog-title">Информация о заказе</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Id Вашего заказа: {response.requestId}
+          </DialogContentText>
+          <DialogContentText>
+            Количество заказанных чашек кофе: {response.amount} ☕
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDialog}>Ок</Button>
+        </DialogActions>
+      </Dialog>
 
       <style jsx>{`
         main {
