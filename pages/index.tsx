@@ -17,9 +17,9 @@ const Home: NextPage = () => {
   const [response, setResponse] = useState<ResponseState>(defaultResponseState);
 
   useEffect(() => {
-    const successfulResponseHandler = (event: CustomEvent<ResponseState>) => {
+    const successfulResponseHandler = ((event: CustomEvent<ResponseState>) => {
       setResponse(event.detail);
-    };
+    }) as EventListener;
 
     const closeDialogHandler = () => {
       setResponse((prev) => ({ ...prev, shouldShowDialog: false }));
