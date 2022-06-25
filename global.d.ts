@@ -9,3 +9,7 @@ interface ResponseData {
   requestId: string;
   amount: number;
 }
+
+interface ResponseState extends ResponseData {
+  shouldShowDialog: boolean;
+}

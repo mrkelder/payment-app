@@ -1,23 +1,11 @@
+import { useState, useEffect } from "react";
+
 import type { NextPage } from "next";
 import Head from "next/head";
 
-import {
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-} from "@mui/material";
-
-import { useState, useCallback, useEffect } from "react";
-
 import { coffeePalette } from "../src/theme";
 import Form from "../src/components/Form";
-
-interface ResponseState extends ResponseData {
-  shouldShowDialog: boolean;
-}
+import ResponseDialog from "../src/components/ResponseDialog";
 
 const defaultResponseState: ResponseState = {
   shouldShowDialog: false,
@@ -33,15 +21,17 @@ const Home: NextPage = () => {
       setResponse(event.detail);
     };
 
+    const closeDialogHandler = () => {
+      setResponse((prev) => ({ ...prev, shouldShowDialog: false }));
+    };
+
     addEventListener("successful_response", successfulResponseHandler);
+    addEventListener("close_dialog", closeDialogHandler);
 
     return () => {
       removeEventListener("successful_response", successfulResponseHandler);
+      removeEventListener("close_dialog", closeDialogHandler);
     };
-  }, []);
-
-  const closeDialog = useCallback(() => {
-    setResponse((prev) => ({ ...prev, shouldShowDialog: false }));
   }, []);
 
   return (
@@ -54,20 +44,7 @@ const Home: NextPage = () => {
         <Form />
       </main>
 
-      <Dialog open={response.shouldShowDialog} onClose={closeDialog}>
-        <DialogTitle id="alert-dialog-title">Информация о заказе</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Id Вашего заказа: {response.requestId}
-          </DialogContentText>
-          <DialogContentText>
-            Количество заказанных чашек кофе: {response.amount} ☕
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDialog}>Ок</Button>
-        </DialogActions>
-      </Dialog>
+      <ResponseDialog response={response} />
 
       <style jsx>{`
         main {
