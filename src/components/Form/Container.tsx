@@ -4,6 +4,7 @@ import {
   FormEventHandler,
   useState,
   ChangeEventHandler,
+  useCallback,
 } from "react";
 
 import type { InputHandler, FormError } from "./Form";
@@ -43,7 +44,54 @@ const Container: FC = () => {
     setIsSubmitDisabled(!formIsValid);
   }, [formIsValid]);
 
-  function changeInputValue(name: keyof PaymentFromData): InputHandler {
+  function changeFormError(name: keyof FormError, value: boolean): void {
+    setFormError((prev) => ({ ...prev, [name]: value }));
+  }
+
+  const submitHandler: FormEventHandler = useCallback(
+    async (event) => {
+      event.preventDefault();
+
+      if (!isCardNumberValid) changeFormError("cardNumber", true);
+      if (!isExpirationDateValid) changeFormError("expirationDate", true);
+      if (!isCvvValid) changeFormError("cvv", true);
+      if (!isAmountValid) changeFormError("amount", true);
+
+      if (formIsValid) {
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_HOST + "/api/sendPayment",
+          { method: "POST", body: JSON.stringify(formData) }
+        );
+
+        if (response.ok) {
+          const data = (await response.json()) as ResponseData;
+
+          const customEvent = new CustomEvent("successful_response", {
+            detail: { ...data, shouldShowDialog: true },
+          });
+
+          dispatchEvent(customEvent);
+        }
+      }
+    },
+    [
+      formData,
+      formIsValid,
+      isAmountValid,
+      isCardNumberValid,
+      isCvvValid,
+      isExpirationDateValid,
+    ]
+  );
+
+  const formChangeHandler = useCallback(() => {
+    const isFormErrorDefault =
+      JSON.stringify(defaultFormError) === JSON.stringify(formData);
+
+    if (!isFormErrorDefault) setFormError(defaultFormError);
+  }, [formData]);
+
+  const changeInputValue = useCallback((name: keyof PaymentFromData) => {
     const changeHandler: ChangeEventHandler<HTMLInputElement> = ({
       target: { value },
     }) => {
@@ -51,44 +99,7 @@ const Container: FC = () => {
     };
 
     return changeHandler;
-  }
-
-  function changeFormError(name: keyof FormError, value: boolean): void {
-    setFormError((prev) => ({ ...prev, [name]: value }));
-  }
-
-  const formChangeHandler = () => {
-    const isFormErrorDefault =
-      JSON.stringify(defaultFormError) === JSON.stringify(formData);
-
-    if (!isFormErrorDefault) setFormError(defaultFormError);
-  };
-
-  const submitHandler: FormEventHandler = async (event) => {
-    event.preventDefault();
-
-    if (!isCardNumberValid) changeFormError("cardNumber", true);
-    if (!isExpirationDateValid) changeFormError("expirationDate", true);
-    if (!isCvvValid) changeFormError("cvv", true);
-    if (!isAmountValid) changeFormError("amount", true);
-
-    if (formIsValid) {
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_HOST + "/api/sendPayment",
-        { method: "POST", body: JSON.stringify(formData) }
-      );
-
-      if (response.ok) {
-        const data = (await response.json()) as ResponseData;
-
-        const customEvent = new CustomEvent("successful_response", {
-          detail: { ...data, shouldShowDialog: true },
-        });
-
-        dispatchEvent(customEvent);
-      }
-    }
-  };
+  }, []);
 
   return (
     <View
