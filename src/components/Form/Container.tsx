@@ -35,7 +35,7 @@ const Container: FC = () => {
   const isCardNumberValid = /^\d{16}$/g.test(cardNumber);
   const isExpirationDateValid = /^\d{2}\/\d{4}$/g.test(expirationDate);
   const isCvvValid = /^\d{0,3}$/g.test(cvv);
-  const isAmountValid = /^\d+$/g.test(amount);
+  const isAmountValid = /^\d+$/g.test(amount) && +amount > 0;
 
   const formIsValid =
     isCardNumberValid && isExpirationDateValid && isCvvValid && isAmountValid;
